@@ -1,0 +1,157 @@
+1일차
+# RStudio의 화면구성과 설정 : 'Tools' → 'Global Options' → 'Appearance'
+# Ctrl + Shift + N  :  새스크립트 불러오기
+
+1-1  변수 이해하기
+# 변수 생성하기 위해 대입연산자 (<-)를 사용
+x <- 10
+y <- 10
+z <- c(1,2,3,4,5)
+
+# 생성된 변수 확인 및 삭제
+ls() : 생성된 변수 목록만 보여주며 변수의 유형, 값 등을 확인 할 수 없음
+ls.str() : 생성된 변수 목록 뿐만 아니라 각 변수의 유형 및 값 등을 확인 
+rm(list = ls()) : 오브젝트 내의 모든 변수 삭제
+rm(x)  : x변수 삭제. 필요 없는 변수, 함수 작업 공간에서 삭제할 때 rm 함수 사용
+
+# 벡터(vector)
+- 한 개 이상의 원소로 구성된 자료구조로서 R의 자료 객체 중에서 가장 기본이 됨
+- 하나의 벡터 원소는 한 가지 형태(mode)만 가능
+
+# 벡터 생성
+- v1 <- c(1,2,3)  : 숫자형 벡터 생성
+- v2 <- c("a", "b", "c")   : 문자형 벡터 생성
+- v3 <- c(T, F, T) : True, False boolean값 벡터 생성
+- height <- c(160, 140, 155)  :height라는 이름의 숫자형 벡터 생성
+
+1-2  함수 사용하기
+# :은 사이의 수를 전부 갖고온다. 
+c(1,2,3,4,5)     1:5      c(1:5)
+1:10000 
+
+# seq (시작값, 마지막값, by : 증가분 조건지정, length : 벡터 길이지정,)
+seq(1, 7, by=2) 
+seq(1, -1, by=-0.5)
+seq(1,7,length=3)
+
+#rep (반복할 값, times : 반복횟수,  each : 각각, length : 길이만큼)
+rep(c(1,2,3),3)                      -> 1 2 3 1 2 3 1 2 3
+rep(1:3,3)                           -> 1 2 3 1 2 3 1 2 3
+rep(c(4,2), times=2)             -> 4 2 4 2
+rep(c(4,2), times=c(2,1))        ->  4 4 2  (4를 두번, 2를 1번 반복)
+rep(c(4,2), length=3)            -> 4 2 4
+rep(c(4,2), each=3)              -> 4 4 4 2 2 2
+
+1-3  범주형 자료
+# 요인(범주형 자료) 만들기 : factor(obj, levels=변수값, labels=요인이름)
+vector를 factor로 만드는 함수 (category, enumerated type이라는 표현도 쓰임)
+
+# 사용법
+factor(x = character(), levels, labels = levels,
+       exclude = NA, ordered = is.ordered(x), nmax = NA)
+ordered(x, ...)
+is.factor(x)
+is.ordered(x)
+as.factor(x)
+as.ordered(x)
+addNA(x, ifany = FALSE)
+
+# 예제
+gender <- factor(c("MALE","FEMALE","MALE"))
+blood <- factor(c("O","AB","A"), levels = ("A","B","AB","O"), labels=c("A형","B형","AB형","O형"))
+# 가끔 factor형 변형이 안 되는 경우 있음. 그럴때는 캐릭터형으로 변경후 다시 factor형 변경
+
+# 순서가 있는 범주형 자료 만들기 : ordered(obj, levels=변수값, labels=요인이름)
+AgeG <- c(4,2,3,2,1,3,2,4)
+age.ord <- ordered(AgeG, labels=c("20대 이하","30대","40대","50대 이상"))
+  
+# 벡터에 자료 삽입 및 삭제하기
+vec1 <- c(1,2,3,4,5)          # 1~5까지 자료를 갖는 vec1 변수 생성
+vec1[2]                       # 두 번째 자료
+vec1[c(2,3,5)]                # vec1의 2, 3, 5의 값만 표현
+vec1[c(-2,-3)]                # vec1의 2, 3번째 자료 값 삭제
+vec1[2] <- 6                  # 두 번째 위치의 2값이 6으로 대체됨
+length(vec1)
+
+1-4 데이터 구조 형태 (매트릭스) 
+# 행렬(Matrix) 
+행렬(matrix)은 동일한 형으로 구성된 2차원의 데이터 구조
+행의 차원과 열의 차원을 갖는 행렬은 수학에서의 행렬과는 달리 문자형이나 논리형 등을 원소로 사용할 수 있다. 
+그러나 행렬의 원소는 한가지 형의 자료만 허락됨
+행렬(matrix)은 여러 변수들이 이차원적으로 모여 있는 개체로, 행렬을 생성하기 위해서는 matrix() 함수를 사용
+matrix() 함수 이외에 cbind(), rbind(), dim() 등을 이용하여 행렬을 생성시킬 수 있음
+
+matrix(1:9, nrow=3)                            # nrow  : 행의 개수 지정
+matrix(c(1,4,7,2,5,8,3,6,9), byrow=T, ncol=3)  # ncol : 열의 개수 지정
+                                               # byrow=T : 행 기준 행렬을 생성
+
+# 벡터에 차원을 부여하여 생성 가능 
+m1 <- 1:9
+dim(m1) <- c(3,3)
+
+# 행렬 관련 여러 함수와 성분의 추출과 삭제 
+mat <- matrix(c(1,2,3,4,5,6,7,8,9), ncol=3, byrow=T) #행 기준 3열의 행렬 생성
+mat[1,]                                       #행렬 mat의 1행의 값
+mat[,3]                                       #행렬 mat의 3열의 값
+
+rownames(mat) <- c("a1","a2","a3")
+colnames(mat) <- c("z1","z2","z3")
+dim(mat) # 행 열 확인하기
+
+1-5 데이터 구조 형태(배열) 
+# 배열(Array) 
+배열(Array)은 행렬을 2차원 이상으로 확장시킨 객체로써 2차원의 구조를 갖는 행렬도 배열의 한 종류
+그러나 일반적으로 3차원 이상의 차원을 갖는 데이터 객체를 배열이라고 부름
+배열을 생성하기 위해서는 array 함수를 사용
+
+배열의 속성 :  행렬의 속성과 같이 자료의 개수를 나타내는 length, 형태를 보여주는 mode, 
+각 차원의 벡터의 크기를 나타내는 dim 그리고 각 차원의 리스트 이름을 나타내는 dimnames로 구성
+
+배열을 생성하기 위한 함수로 array() 함수와 dim() 함수가 있음
+array(1:6)                                      #1~6의 자료로 1차원 배열 생성
+array(1:6, c(2,3))                              #1~6의 자료로 2차원 배열 생성
+array(1:8, c(2,2,2))                             #1~8의 자료로 3차원 배열 생성
+arr <- c(1:24)                                 #1~24의 자료 생성
+dim(arr) <- c(3,4,2)                           #dim() 함수를 이용하여 3행 4열의 행렬 2개 생성
+ 
+1-6 데이터 구조 형태(데이터 프레임) 
+# 데이터 프레임(data.frame) 
+데이터 프레임은 행렬과 비슷한 형태로 되어 있으나, 
+행렬은 차원으로 표시되며 같은 형태(mode)의 객체를 가지는 반면, 
+데이터 프레임은 각 열(column)들이 서로 다른 형태(mode)의 객체를 가질 수 있으므로
+범주형 변수를 가질 수도 있기 때문에 범주형 자료분석에도 유용하게 사용된다.
+
+data.frame() : 이미 생성되어 있는 벡터들을 결합하여 데이터 프레임을 생성
+char1 <- rep(LETTERS[1:3],c(2,2,1))          #벡터 
+num1 <- rep(1:3,c(2,2,1))                           #벡터
+test1 <- data.frame(char1, num1)              #test1 데이터 프레임 생성
+
+as.data.frame() :모든 다른 종류의 자료객체들을 데이터 프레임으로 변환
+mat <- matrix(c(1,2,3,4,5,6,7,8,9), ncol=3, byrow=T) #행 기준 3열의 행렬 생성
+test3 <- as.data.frame(mat)                     #mat을 데이터 프레임으로 변환
+test3 <- data.frame(mat)
+ 	-> matrix는 행렬에 이름 없음
+-> dataframe은 열에 V1, V2… 이렇게 이름 자동으로 붙음
+ 	as.data.frame 없으면 열 이름이 V가 아니라 X1, X2..?
+
+1-7 데이터 구조 형태(리스트) 
+# 리스트(list)
+리스트(List)는 서로 다른 형태(mode)의 자료를 포함하는 하나의 객체이다.
+li <- list("top", c(2,4,6),c(T,F,T))              #list(문자, 숫자, 논리형 객체) 
+li[[1]]                                           #[[1]]:첫 번째 성분 “top” 출력
+mat1 <- matrix(1:4, nrow=2)
+list1 <- list("A", 1:8, mat1)
+ 
+리스트 속성 : 벡터의 속성과 같이 자료의 개수, 형태, 구성요소의 이름 등을 보여주는 length, mode, names로 구성
+son <- list(son.name = c("Minsu", "Minchul"), son.cnt = 2, son.age = c(2.6))
+length(son)                           #son 리스트 자료의 개수 -> 3
+mode(son)                           #son 리스트 자료의 형태 -> list
+names(son)                          #son 리스트 각 구성요소의 이름 ->son.name, son.cnt, son.age
+
+exm <- list(c("Abe", "Bob", "Carol", "Deb"),c("Weight","Waist")) #exm의 이름으로 list생성
+exm[[2]]                                            #리스트의 2번째 성분
+exm[[2]][2]                                         #2번째 성분 2번째 원소
+names(exm) <- c("Names","Trait")           #exm 리스트에 성분 이름 부여
+exm$Names                                       # exm의 Names 성분만 표현
+exm$Names[2]                                    # Names 성분 2번째 원소 표현
+exm$Trait                                          # exm의 Trait 성분만 표현
