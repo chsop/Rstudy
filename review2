@@ -1,0 +1,164 @@
+2일차
+1일차 복습
+list1 <- list("A", 1:8)                         # list1 리스트 생성
+list1[[3]] <- list(c(T, F))                     # list1에 세 번째 성분을 추가
+list1[[2]][9] <- 9                              # 두 번째 성분에 원소 추가
+list1[3] <- NULL                                # 세 번째 성분 삭제
+list1[[2]] <- list1[[2]][-9]                    # 두 번째 성분의 9번째 원소 삭제
+
+2-1 데이터 호출하기 
+- 작업 폴더 확인하기 : getwd()
+- 작업폴더 설정(Set Working Directory) : 'Ctrl+ Shift + h'
+  (혹은 RStudio Menu ; Session -> Set Working Directory -> Choose Directory)
+- 작업 폴더 지정하기 : setwd('Your Working Directory Address')
+- 데이터 불러오기 : read.csv('test.csv')
+- 인코딩 지정 : read.csv('pop_seoul_euckr.csv', fileEncoding='euc-kr')
+  -> Windows 인코딩 : CP949/euc-kr
+  -> mac/Linux 인코딩 : UTF-8
+   * 같은 운영체제에서는 생략 가능 
+- '<-'을 활용해서 저장하기 : pop_seoul <- read.csv('pop_seoul_euckr.csv')
+- 불러온 데이터 보기 : 오른쪽 위 환경창에서 데이터 이름 클릭하거나 직접 View()에 데이터를 넣고 실행    ex) View(pop_seoul)
+- 데이터 샘플 살펴보기 : head(pop_seoul, 10), tail(pop_seoul, n=10)
+- 데이터 특성(구조, 변수형식 등) : str(pop_seoul)
+- 데이터 요약(컬럼별 최대, 최소, 평균, 1st/3rd quartile) : summary(pop_seoul)
+
+- txt파일 불러오기 (탭으로 구분된 데이터)
+temp = read.table('pop_seoul.txt', header=TRUE,  fileEncoding='UTF-8')
+- csv파일 저장하기 : write.csv(저장할객체, file='경로/이름')
+write.csv(pop_seoul, file='aaa.csv', row.names = F)
+
+- xlsx 파일 불러오기 : openxlsx 패키지를 활용하면 원래는 없었던 read.xlsx( ) 함수 사용가능
+install.packages('openxlsx')
+library(openxlsx)
+
+SHEET1 = read.xlsx('test.xlsx', sheet=1)
+SHEET2 = read.xlsx('test.xlsx', sheet=2, startRow=3)
+(sheet = 시트번호 지정(디폴트는 1), startRow= 데이터 시작 행번호 지정)
+SHEET3 = read.xlsx('test.xlsx', sheet=3, colNames=FALSE)
+(첫 행이 변수이름이 아니라 관측치일때, colNames=FALSE 옵션 사용하면 컬럼 이름을 X1, X2로 자동 할당해줌)
+
+- RDS (R객체 저장한 파일) 불러오기
+new_data <- readRDS("iris.RDS")
+- RDS 파일로 저장
+saveRDS(new_data, file = "new_iris.RDS")
+- RData (image 파일) 불러오기 : 작업하기 위해 호출해놓은 모든 파일 한번에 불러올 수 있음
+load("iris.RData")      #load는 변수할당 x 
+- Rdata (image) 저장하기 : 작업하기 위해 호출해놓은 모든 파일 한번에 저장
+save.image("iris_image.RData")
+
+2-2 R에서 제공하는 연산 알아보기 
+기본연산
+a<-c(1,2)     b<-c(3,4)
+a+b     a-b    a*b    a/b    # 벡터변수의 덧셈, 뺄셈, 곱셈, 나눗셈
+
+a<-c(4,5)    b<-c(2,3)
+a^b      # 벡터변수의 제곱(구성 요소들간의 제곱, 4^2, 5^3)
+a<-c(7,2)   b<-c(3,4)
+a%/%b    # 벡터 변수의 나눗셈에서 몫(정수)만 출력함
+a%%b     # 벡터 변수의 나눗셈에서 나머지(정수)만 출력함
+    
+행렬의 곱
+A<-matrix(c(5,10,2,1), ncol=2)
+B<-matrix(c(3,4,5,6), ncol=2)
+A;B    # 두 매트릭스 동시에 호출할 때
+A%*%B   #행렬의 곱 (5*3) + (2*4) ; (5*5) + (2*6) ; (10*3) + (1*4) ; (10*5) + (1*6)
+
+비교연산
+'==' 비교되는 두 항이 같은지를 비교함. 같을 경우 True, 다를 경우 False
+'!=' 비교되는 두 항이 다른지를 비교함. 같을 경우 False, 다를 경우 True
+'<=' 왼쪽 항이 오른쪽 항보다 작거나 같음을 비교함. 작거나 같으면 True, 크면 False
+'<' 왼쪽 항이 오른쪽 항보다 작음을 비교함. 작으면 True, 크면 False
+
+논리연산
+! : not 연산자
+& : 벡터에서의 and 논리 연산자
+2==2 & c( 3>4)
+2==2 & c( 3<4)
+| : 벡터에서의 or 논리 연산자
+2==2 | c( 3>4)
+2!=2 | c( 3>4)
+
+데이터의 열(컬럼) 추가, 삭제, 조회
+tmp_df <- data.frame(AA = c(1:5), BB = c("A","A","B","B","B"))
+tmp_df$CC <- 1
+tmp_df$DD <- tmp_df$AA + tmp_df$CC
+tmp_df[, -1]                          #1번째 컬럼 제거
+tmp_df[, c(-1,-2)]                    # 1,2번째 컬럼 제거
+tmp_df[, -"AA"]                      #오류 발생함
+tmp_df[, c("BB","CC","DD")]       # 3개 컬럼 이름으로 조회
+which(names(tmp_df)=="CC")   #컬럼명이 CC인 컬럼의 인덱스번호 조회 (3을 리턴) 
+
+2-3 데이터형태 조정하기
+- 데이터 추출(Select)
+- 랜덤값 생성 : sample (범위, 추출수, replace = 중복가능여부)
+Sample.df <- data.frame(AA = rep(letters[1:5],10), BB = sample(60:70, 50, replace = T))
+
+- set.seed 랜덤값 고정
+set.seed(1234)      # 랜덤값 고정하고 싶을 때 set.seed 다음에 바로 sample함수 쓰면 됨(연달아)
+sample(1:6,10,replace=T)     # 1부터 6을 10번 랜덤추출
+
+- AA컬럼의 값중에서 a인 값만 추출
+Sample.df[Sample.df$AA == "a",]       # row 조건 위치에 명기해줘야 함
+subset(Sample.df, AA == "a")          # subset 사용
+
+- AA컬럼의 값중에서 a 와 b의 값만 추출
+Sample.df[Sample.df$AA %in% c("a","b"),]
+subset(Sample.df, AA %in% c("a","b"))
+
+- 컬럼 조건 설정해서 추출
+Sample.df1[,c("AA","BB")]
+Sample.df1[,c(1,2)]
+Sample.df1[,c(-4,-5)]
+
+2-4 데이터 합치기 
+- cbind, rbind, merge 함수를 가장 많이 사용
+
+- 행 결합 (rbind)
+library(openxlsx)
+GN = read.xlsx('아파트매매_2018_강남구.xlsx', sheet=1, startRow=17)
+GD = read.xlsx('아파트매매_2018_강동구.xlsx', sheet=1, startRow=17)
+SC = read.xlsx('아파트매매_2018_서초구.xlsx', sheet=1, startRow=17)
+names(GN)    names(GD)    str(GN)    str(GD)
+GN4 = rbind(GN, GD, SC)
+
+- 열 결합 (cbind)
+my_data = data.frame(id = 1:5, gender = c('M','F','F','F','M'), age = seq(15, 35, 5))
+another_data = data.frame(region = c('Seoul','Seoul','Seoul','Busan','Busan'), amount = c(1,1,1,1,1))
+c_data = cbind(my_data, another_data)
+
+- $를 활용한 변수추가 혹은 key(id) 변수를 활용한 결합 활용
+c_data$amount2 = 100
+my_data$age_grp = cut(my_data$age, 
+                      breaks=c(10,20,30,40), 
+                      include.lowest=TRUE, 
+                      right=FALSE,
+                      labels=c('10_19','20_29','30_39'))	 
+my_data$age_grp = cut(my_data$age, 
+                      breaks=c(0,10,20,30,60), 
+                      include.lowest=TRUE, 
+                      right=FALSE,
+                      labels=c('10대미만', '10대','20대','30대이상'))	 
+
+# cut( )을 활용한 연령대 변수 추가
+# breaks : 구간 경계값
+# include.lowest : 첫 경계값 포함 여부 (첫 예제에서는 10)
+# right : 각 구간의 오른쪽 경계 포함 여부 (첫 예제에서는 20, 30, 40)
+# labels : 각 구간의 이름
+
+- 조건에 맞는 데이터 합치기 (merge)
+sales = read.csv('ex_sales.csv')
+prod  = read.csv('ex_prod.csv')
+merged = merge(sales, prod, by.x='PROD', by.y='PROD')
+## merge(데이터1, 데이터2, by.x='데이터1의 기준변수', by.y='데이터2의...')
+merged = merge(sales, prod, by='PROD')
+## 기준변수가 같을 때는 "by="으로 한번에 지정 가능
+merge(sales, prod, by.x='PROD', by.y='PROD', all.x=TRUE)
+## all.x=TRUE : 짝이 없는 첫번째 데이터의 관측치도 포함
+## Excel의 VLOOKUP 느낌
+merge(sales, prod, by.x='PROD', by.y='PROD', all.y=TRUE)
+## all.y=TRUE : 짝이 없는 두번째 데이터의 관측치도 포함
+merge(sales, prod, by.x='PROD', by.y='PROD', all=TRUE)
+## all=TRUE : 짝이 없는 모든 관측치 포함
+     
+- 주의사항 : 1대1, 다:1은 문제가 없지만 다:다 결합은 조심! 
+merge할때 항상 하나는 중복값 없는 마스터테이블이어야 함
