@@ -1,0 +1,162 @@
+4일차
+
+4-1. dplyr 
+install.packages('dplyr')
+library(dplyr)
+
+slice( ) : 행번호를 활용해서 특정 행 불러오기
+slice(데이터명, 잘라서가져올 행)
+slice(delivery, c(1,3,5:10))    ## 1, 3, 5~10 행만 불러오기
+
+filter( ) : 조건에 맞는 데이터 행만 불러오기
+filter(데이터명, 조건)
+filter(데이터명, 조건1, 조건2, 조건3, ...)
+filter(delivery, 시군구=='성북구')
+filter(delivery, 시군구=='성북구', 요일 %in% c('토', '일'), 업종=='피자' | 통화건수>=100)
+
+arrange( ) : 정렬하기(오름차순)
+arrange(데이터명, 정렬기준변수1, 정렬기준변수2, ...)
+arrange(delivery, desc(시군구), 요일, 업종)
+
+select( ) : 변수를 선택하거나 제외하기
+select(delivery, 시간대:통화건수)
+select(delivery, -요일)
+
+distinct( ) : 반복 내용제거하기
+distinct(delivery, 업종)
+
+mutate( ) : 기존 변수를 활용한 임시 변수 만들기
+mutate(delivery, 새요일=paste0(요일, '요일'))
+* 변수 추가 다른방법 : delivery$새요일 = paste0(delivery$요일, '요일')
+
+count( ) : 그룹별 개수 세기
+count(delivery, 시군구)
+
+group_by( ) : 그룹 지정해주기
+delivery_grp = group_by(delivery, 시군구)
+
+summarize( ) : 요약하기
+summarise(delivery, mean(통화건수), m = min(통화건수), M = max(통화건수))
+summarise(delivery_grp, mean(통화건수), m = min(통화건수), M = max(통화건수))
+* 원본 데이터는 전체 요약, 그룹이 지정된 데이터는 그룹별 요약
+summarise(delivery_grp, length(통화건수))
+* "delivery %>% count(통화건수)"와 동일
+
+top_n( ) : 상위 관측치 확인하기  
+top_n(delivery, 5, 통화건수)
+top_n(delivery_grp, 5, 통화건수)
+
+연습문제
+data(iris)
+head(iris)
+
+1.iris 데이터중 1부터 50행중 홀수, 100부터 150행중 짝수 선택
+slice(iris, seq(1,50,2), seq(100,150,2))
+
+2.iris 데이터중 Species가 "setosa"이면서 Sepal.Length가 5보다 큰 값을 추출하시오
+filter(iris, Species=='setosa' & Sepal.Length>=5)
+filter(iris, Species=='setosa', Sepal.Length>=5)
+
+3.iris 데이터중 Sepal.Length는 내림차순 Sepal.Width는 오름차순으로 출력하시오
+arrange(iris, desc(Sepal.Length), Sepal.Width)
+
+4.iris 데이터중 "Sepal.Width" 와 "Species" 열을 선택하시오
+dplyr::select(iris, Sepal.Width, Species)
+
+5.iris 데이터중 "Species"의 종류를 확인하시오
+distinct(iris, Species)
+
+6.iris 데이터중 "Sepal.Length" 와 "Sepal.Width" 두변수의 합을 Sepal_sum이라는 변수에 저장하시오
+mutate(iris, Sepal_sum = Sepal.Length + Sepal.Width)
+
+7.iris 데이터중 "Species"의 종별 개수를 확인하시오
+count(iris, Species)
+
+8.iris 데이터중 Sepal.Length의 합과 Sepal.Width의 평균을 구하시오
+summarise(iris, sum=sum(Sepal.Length), mean=mean(Sepal.Width))
+
+9.iris 데이터중 "Petal.Width"의 상위 5개의 값을 출력
+* 중복값이 있으면 딱 5개만 나오는게 아니라 6,7..개 나옴
+top_n(iris, 5, Petal.Width)
+
+* 딱 5개만 보고 싶을때는 이렇게
+head(arrange(iris, desc(Petal.Width)),5)
+
+파이프라인( %>% ) : 연속작업
+new_data = delivery %>% 
+  filter(업종=='중국음식') %>% 
+  group_by(시군구) %>% 
+  summarise(mean_call = mean(통화건수)) %>% 
+  arrange(desc(mean_call))
+
+ungroup( ) : 활용 (시군구별 상위 3대 시간대 확인)
+delivery %>% 
+  filter(업종=='중국음식') %>% 
+  group_by(시간대, 시군구) %>% 
+  summarise(mean_call = mean(통화건수)) %>% 
+  ungroup() %>% 
+  group_by(시군구) %>% 
+  top_n(3, mean_call) %>% 
+  arrange(시군구, desc(mean_call))
+
+summarise( )로 요약할 때의 그룹과 top_n( )등의 선택에서의 그룹이 다를 때는 중간에 ungroup( )을 넣어서 그룹 지정 해제
+
+연습문제 - 보험료 데이터 요약하기
+# 예제 데이터 불러오기 
+ins = read.csv('insurance.csv')
+
+#1 데이터 ins에서 sex가 female인 관측치로 region별 관측치 수(행의 수) 계산
+#방법1
+ins %>%
+  filter(sex=="female") %>%
+  count(region)
+
+#방법2
+count(group_by(filter(ins, sex=='female'), region))
+
+#방법3
+ins %>%
+  filter(sex=="female") %>%
+  group_by(region) %>%  
+  summarise(num = n())  # n()는 개수 세어달라는 명령어. 유용!
+  # num=n()을 summarise에 써서 group_by 조건에 대한 행 개수 셀수 있음
+
+#2 charges가 10000이상인 관측치 중에서 smoker별 평균 age 계산
+ins %>%
+  filter(charges>=10000) %>%
+  group_by(smoker) %>%
+  summarise(avg_age = mean(age))
+
+#3 age가 40 미만인 관측치 중에서 sex, smoker별 charges의 평균과 최댓값 계산 
+ins_data <- ins %>%
+  filter(age<40) %>%
+  group_by(sex, smoker) %>%
+  summarise(mean_charge = mean(charges),
+            max_charge = max(charges))
+
+# 데이터를 csv파일로 저장하기
+# row.names=FALSE 안하면 첫번째 열에 넘버링됨
+write.csv(ins_data, 'ins_data3.csv', row.names=FALSE)
+
+?top_n -> 같은 기능 수행하는 slice_min(), slice_max()가 새로 나왔다고 함
+
+mutate의 확장
+iris 데이터의 Species 별로 Sepal.Length의 비중을 알고싶다면?
+iris %>% 
+  group_by(Species) %>%
+  mutate(Sum = sum(Sepal.Length)) %>% 
+  mutate(Prop = Sepal.Length/Sum) %>% 
+  select(Species, Sepal.Length, Prop)
+
+group별로 번호를 매기고 싶다면? row_number() 사용
+iris  %>%
+  arrange(Species,Sepal.Length) %>%
+  dplyr::group_by(Species) %>%
+  dplyr::mutate(seq_num = row_number()) %>% data.frame()
+
+Species별 Sepal.Width가 3번째로 큰 값들의 합은? 
+iris %>% 
+  arrange(Species, Sepal.Width) %>% 
+  group_by(Species) %>% 
+  mutate(seq_num = row_number()) %>% 
+  filter(seq_num == 3)
