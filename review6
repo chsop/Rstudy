@@ -1,0 +1,138 @@
+# 6
+# plot 함수로 색깔 점 찍기
+plot(0,5, pch=8, cex=5, col='sienna1')
+plot(0,3, pch=16, cex=7, col='deeppink')
+plot(0,1, pch=15, cex=3, col='dodgerblue')
+
+# 0,0 : x, y축 좌표
+# pch : 모양
+# cex : 사이즈
+# col : 색상
+
+# R에서의 색 표현법
+# 1) Colors in R
+# http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+# 2) rgb( ) 함수와 "#RRGGBB" HEX코드
+rgb(0/255, 70/255, 42/255)
+plot(0,0, pch=18, cex=7, col='#00462A')
+
+# 3) RColorBrewer 패키지
+# http://colorbrewer2.org/
+install.packages('RColorBrewer')
+library(RColorBrewer)
+
+# 패키지 내 모든 색상조합 확인  
+display.brewer.all() 
+
+## 색상조합 이름 확인 (해당 조합의 9개 색상까지 출력해줌)
+brewer.pal(9, 'Set1')
+brewer.pal(9, 'Blues')
+brewer.pal(9, 'YlGnBu')
+brewer.pal(9, 'Spectral')
+
+
+## ggplot2 패키지를 활용한 시각화
+install.packages('ggplot2')
+library(ggplot2)
+
+# 데이터 요약/처리를 위한 패키지
+library(dplyr)
+library(tidyr)
+
+install.packages("gapminder")
+library(gapminder)
+data(gapminder)
+data1 <- gapminder[gapminder$year=="2007",]
+
+# 실습
+# 1. 그래프를 그릴 도화지 세팅
+ggplot(data1) +
+  aes(x = gdpPercap) + #x축 지정
+  aes(y = lifeExp)     #y축 지정
+
+# 한번에 그리기
+ggplot(data1, aes(x=gdpPercap,y=lifeExp))
+
+# 2. 그림을 선택
+ggplot(data1) +
+  aes(x = gdpPercap) + #x축 지정
+  aes(y = lifeExp) +   #y축 지정
+  geom_point()         #그래프 종류
+
+# 3. 꾸미기
+# 자주 쓰는 색들은 따로 뽑아놓고 쓰면 편하다.
+
+# 3-1 색 지정 aes(color = )
+ggplot(data1) +
+  aes(x = gdpPercap) +   #x축 지정
+  aes(y = lifeExp) +     #y축 지정
+  geom_point() +         #그래프 종류
+  aes(color = continent) #색 지정
+
+# 같은 표현
+# geom_point는 +로 연결해서 따로 써주기, 그 안에 컬러정보 넣어줘도 됨
+windows() # 그래프 불러올 새창 띄우기
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color=continent)) + geom_point()
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp)) + geom_point(aes(color=continent))
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp)) + geom_point(color = "red")
+
+# 불가능 (잘못된 시각화)
+# aes 안에 색 정보 넣으면 blue라는 변수로 인식해버림
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = "blue")) + geom_point()
+
+# fill 파라미터 산점도에서는 적용안됨 (막대그래프에서 사용)
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, fill = continent)) + geom_point()
+
+# 3-2 모양 지정 aes(shape = )
+ggplot(data1) +
+  aes(x = gdpPercap) +     #x축 지정
+  aes(y = lifeExp) +       #y축 지정
+  geom_point() +           #그래프 종류
+  aes(color = continent) + #색 지정
+  aes(shape = continent)   #모양 지정
+
+# 같은표현
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent, shape = continent)) + geom_point()
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent)) + geom_point(aes(shape = continent))
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp)) + geom_point(aes(color = continent, shape = continent))
+
+# 특정모양 지정
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent)) + geom_point(shape = 3)
+
+# 오류 발생 (shape 특정 모양 지정시 geom_point 안에 써줘야 함)
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent, shape = 3)) + geom_point()
+
+# 3-3 크기 지정 aes(size = )
+# 범주형 데이터(다른 색), 연속형 데이터(색 진하기)에 따라 색 처리 방식 달라짐
+
+ggplot(data1) +
+  aes(x = gdpPercap) +     #x축 지정
+  aes(y = lifeExp) +       #y축 지정
+  geom_point() +           #그래프 종류
+  aes(color = continent) + #색 지정
+  aes(shape = continent) + #모양 지정
+  aes(size = pop)          #크기 지정
+
+# 같은표현
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent, shape = continent, size = pop)) + geom_point()
+
+# 특정 크기 지정 (aes로 묶어서 사이즈 변경)
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent, shape = continent)) + geom_point(size = 3)
+
+
+# 3-4 투명도 지정 aes(alpha = )
+ggplot(data1) +
+  aes(x = gdpPercap) +     #x축 지정
+  aes(y = lifeExp) +       #y축 지정
+  geom_point() +           #그래프 종류
+  aes(color = continent) + #색 지정
+  aes(shape = continent) + #모양 지정
+  aes(size = pop) +        #크기 지정
+  aes(alpha = lifeExp)     #투명도
+
+# 같은표현
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent, shape = continent, size = pop, alpha = lifeExp)) + geom_point()
+
+# 특정 투명도 지정
+data1 %>% ggplot(aes(x=gdpPercap, y=lifeExp, color = continent, shape = continent, size = pop)) + geom_point(alpha = 0.7)
