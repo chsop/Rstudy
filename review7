@@ -1,0 +1,180 @@
+# 7일차
+# 데이터 분석을 위한 기초통계
+
+# 연속형
+#평균
+mean(x, na.rm=FALSE)  # 계산 전 NA 제거여부
+
+#분산
+var(x, na.rm=FALSE)
+
+#표준편차
+sd(x, na.rm=FALSE)
+
+#사분위수
+quantile(1:11,0.7)
+
+# 범주형
+table(...)  # factor로 해석가능한 하나 이상의 객체
+which.max(x)   # 숫자 벡터
+
+(x <- factor(c("a", "b", "c", "c", "c", "d", "d")))
+table(x)             # factor의 각 레벨(level)별 빈도수를 구한다.
+
+which.max(table(x))  # 가장 큰 값이 저장된 셀의 색인 -> 3
+names(table(x))[3]   # 가장 큰 값이 저장된 셀의 이름 -> c
+
+# 주변비율
+prop.table(x, margin=NULL)
+
+x1 <- data.frame(x1=sample(1:5,20,replace = T),x2=sample(1:5,20,replace = T))
+prop.table(table(x1))  #전체 조합이 일어날 비율을 5x5 테이블에 펼쳐보여줌
+prop.table(table(x1),1)  #한 row의 조합이 일어날 비율을 1로 놓음 (가로로 더하면 1)
+prop.table(table(x1),2)  #한 column 조합이 일어날 비율을 1로 놓음 (세로로 더하면 1)
+
+# 추출
+sample(
+  x,    # 표본을 뽑을 데이터 벡터. 만약 길이 1인 숫자 n이 지정되면 1:n에서 표본이 선택된다.
+  size, # (뽑을)표본의 크기
+  replace=FALSE, # 복원 추출 여부
+  prob=NULL
+)
+  # 데이터가 뽑힐 가중치. 예를 들어, x=c(1, 2, 3)에서 2개의 표본을 뽑되
+  # 각 표본이 뽑힐 확률을 50%, 20%, 30%로 하고자 한다면 size=2, prob=c(5, 2, 3)을 지정한다.
+  # prob나 prob에 지정한 값의 합이 1일 필요는 없다.
+
+sample(1:10, 5)
+sample(1:10, 5, replace=TRUE)
+
+# 층화추출
+library(sampling)
+
+sampling::strata(
+  data,             # 데이터 프레임 또는 행렬
+  stratanames=NULL, # 층화 추출에 사용할 변수들
+  size,             # 각 층의 크기
+  # - srswor : 비복원 단순 임의 추출(Simple Random Sampling WithOut Replacement)
+  method=c("srswor")
+)
+
+(x <- strata(c("Species"), size=c(5, 3, 2), method="srswor", data=iris))
+strata(c("Species"), size=c(3, 1, 1), method="srswr", data=iris)
+
+# srswor(디폴트값) : 랜덤 추출, 중복값 허용x
+# srswr : 랜덤 추출, 중복값 허용o
+# poisson : 포아송 추출
+# systematic : 계통 추출 (첫번째 요소 무작위 선정 후 매 k번째 요소 선정)
+
+# 이산확률 분포
+library(ggplot2)
+
+# 난수 생성(table(RB) 해보면 정확히 0.4, 0.6 비율로 생성된건 아님)
+RB = sample( c(0,1) , 400 , prob = c(0.4,0.6), replace=T)
+
+ggplot(NULL) +
+  geom_bar(aes(x = as.factor(RB), fill = as.factor(RB))) +
+  theme_bw() +
+  xlab("") + ylab("") +
+  scale_x_discrete(labels = c("실패","성공")) +
+  theme(legend.position = 'none')  #범례 삭제
+
+# 이항분포 추출(동전을 5번 던졌을 경우 앞면이 나오는 횟수)
+rbinom(n=100,size=5,prob=0.5)
+# n = 시도 횟수 (총 몇판)
+# size = 동전을 던진 횟수 (한판에)
+# prop = 성공할 확률
+
+library(tidyverse)
+data.frame(n = rbinom(n=10,size=5,prob=0.5)) %>% ggplot(aes(x=n))+geom_bar()
+data.frame(n = rbinom(n=30,size=5,prob=0.5)) %>% ggplot(aes(x=n))+geom_bar()
+data.frame(n = rbinom(n=50,size=5,prob=0.5)) %>% ggplot(aes(x=n))+geom_bar()
+data.frame(n = rbinom(n=100,size=5,prob=0.5)) %>% ggplot(aes(x=n))+geom_bar()
+data.frame(n = rbinom(n=10000,size=5,prob=0.5)) %>% ggplot(aes(x=n))+geom_bar()
+
+# 확률 확인
+dbinom(x=3,size=5,prob=0.5) #3번 앞면
+dbinom(x=4,size=5,prob=0.5) #4번 앞면
+
+# 누적 확률 확인
+pbinom(q=2, size = 5, prob = 0.5) # 2 이하 성공
+pbinom(q=3, size = 5, prob = 0.5) # 3 이하 성공
+
+# 연속 확률 분포 (구간으로 정의되는 분포)
+R = rnorm(n = 100000, mean = 0, sd = 1)
+
+ggplot(NULL) +
+  geom_histogram(aes(x = R, y= ..density..),binwidth = 0.2,fill = "white",col = 'black') +
+  scale_y_continuous(expand = c(0,0),limits = c(0,0.5)) +
+  scale_x_continuous(limits = c(-3,3)) + 
+  xlab("")
+
+# 정규분포
+rnorm() # 평균과 분산에 해당하는 랜덤 샘플
+dnorm() # 확률 밀도함수
+pnorm() # 누적 분포함수
+qnorm() # 분위수 함수
+
+# 평균이 10이고 표준편차가 2인 샘플 30개 만들기
+rnorm(n=30, mean = 10, sd =2)
+
+# 1.96의 밀도함수는?
+dnorm(1.96,mean = 0, sd=1) 
+
+# 0.975 누적합수의 x축은?
+qnorm(0.975,mean = 0, sd=1)
+
+#1.96까지의 누적 분포함수는?
+pnorm(1.96)
+
+# 평균은 같고 표준편차는 다른 그래프 그려보기
+library(reshape)
+library(dplyr)
+k1 = c()
+p1 = c()
+
+for(k in seq(-15, 15, by = 0.01)){
+  p = dnorm(x = k, mean = 0, sd = 1)
+  k1 = c(k1, k)
+  p1 = c(p1, p)
+}
+
+k2 = c()
+p2 = c()
+
+for(k in seq(-15, 15, by = 0.01)){
+  p = dnorm(x = k, mean = 0, sd = 5)
+  k2 = c(k2, k)
+  p2 = c(p2, p)
+}
+
+DF = data.frame(
+  k = k1,
+  p1 = p1,
+  p2 = p2
+)
+
+DF %>%
+  gather("variable", "value", p1:p2) %>%
+  ggplot() +
+  geom_line(aes(x = k, y = value, col = as.factor(variable))) +
+  geom_vline(xintercept = 0,linetype = 'dashed') +
+  theme(legend.position = 'none') +
+  scale_y_continuous(expand = c(0,0))
+
+# 표준화 전, 후 그래프 그려보기
+x1 = rnorm(n = 1000, mean = 20, sd = 5)
+x2 = scale(x1)
+
+DF = data.frame(
+  x1 = x1,
+  x2 = x2
+)
+
+DF %>% 
+  gather("variable","value") %>%
+  mutate(variable = ifelse(variable == "x1", "비표준화","표준화")) %>%
+  ggplot() +
+  geom_density(aes(x = value, fill = variable), alpha = 0.4) +
+  theme_bw() +
+  theme(legend.position = c(0.8,0.6)) +
+  xlab("") + ylab("") + labs(fill = "")
