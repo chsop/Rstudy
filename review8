@@ -1,0 +1,81 @@
+# 8일차
+# 1. 상관관계분석
+
+# 키와 몸무게
+height<-c(164,175,166,185)
+weight<-c(62,70,64,86)
+
+# 상관관계 구하기
+round(cor(height,weight),3)
+
+# 건강정보 데이터
+library(moonBook)
+data(acs)
+str(acs)
+
+acs2<-acs[,c(1,6:9)]
+cor(acs2)  # NA값때문에 상관관계 계산되지 않음
+cor(acs2,use="na.or.complete")  # NA값 존재시 NA 제외후 계산
+
+# 산점도행렬 (별 개수는 유의확률을 나타내줌. 별보다는 숫자를 중심으로 보면됨)
+# 방법1
+library(psych)
+pairs.panels(acs2)
+
+# 방법2
+library(PerformanceAnalytics)
+chart.Correlation(acs2, histogram=TRUE, pch=19)
+
+# outlier가 상관계수에 미치는 영향
+dat<-data.frame(
+  a=c(15,20,25,27,31,25,23,23,42,12,34,23,40),
+  b=c(50,55,52,52,56,54,62,56,70,46,43,50,54)
+)
+plot(dat$a,dat$b)
+abline(lm(dat$b~dat$a))
+cor(dat$a,dat$b)
+
+# outlier 추가시 그래프가 왜곡되고 상관계수도 커짐
+# 상관계수는 outlier에 민감하므로 처리 필요!
+dat[14,]<-c(200,230)
+plot(dat$a,dat$b)
+abline(lm(dat$b~dat$a))
+cor(dat$a,dat$b)
+
+# 히트맵으로 상관계수 확인하기
+library(corrplot)
+
+# na값이 있으면 분산을 못 구하므로 na.or.complete 꼭 필요
+corrplot(cor(acs2,use="na.or.complete"))
+corrplot(cor(acs2,use="na.or.complete"),method="square")
+corrplot(cor(acs2,use="na.or.complete"),method="ellipse")
+corrplot(cor(acs2,use="na.or.complete"),method="number")
+corrplot(cor(acs2,use="na.or.complete"),method="shade")
+corrplot(cor(acs2,use="na.or.complete"),method="color")
+corrplot(cor(acs2,use="na.or.complete"),method="pie")
+
+# cor의 비모수적 표현들 (pearson이 기본형)
+# spearman - 순위가 있는 변수 간의 피어슨 상관계수. 값 단위가 다를때 랭킹 기준으로 상관관계 체크
+# kendall - 순위 일치하는 경우, 일치하지 않는 경우 비교하여 계산
+cor(acs$height,acs$weight, use="na.or.complete")
+cor(acs$height,acs$weight, method="spearman", use="na.or.complete")
+cor(height,weight,method="kendall")
+
+# 연습문제
+data(iris)
+head(iris)
+
+# 1. iris 데이터셋에서 Sepal.Length와 가장 상관있는 변수 찾기
+cor(iris$Sepal.Length, iris$Sepal.Width)
+cor(iris$Sepal.Length, iris$Petal.Length)  #가장 상관관계 큼
+cor(iris$Sepal.Length, iris$Petal.Width)
+
+plot(iris$Sepal.Length,iris$Petal.Length)
+pairs.panels(iris[,1:4])
+
+# 2. mpg 데이터셋에서 변수간 상관관계 확인해보기
+data(mtcars)
+head(mtcars)
+
+pairs.panels(mtcars[,1:7])
+chart.Correlation(mtcars[,1:7], histogram=TRUE, pch=19)
