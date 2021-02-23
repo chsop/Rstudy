@@ -97,7 +97,7 @@ t_data<-data.frame(
 library(tidyverse)
 library(ggplot2)
 
-# 박스플랏으로 그룹별 score, age 분포 확인
+# 박스플랏으로 그룹별 score, age 분포 확인.
 ggplot(t_data,aes(x=factor(group), y=score, fill=factor(group))) + geom_boxplot()
 ggplot(t_data,aes(x=factor(group), y=age, fill=factor(group))) + geom_boxplot()
 
