@@ -169,3 +169,62 @@ var.test(mtcars[mtcars$am==0, 'mpg'], mtcars[mtcars$am==1, 'mpg'])
 
 # t검정 : p-value가 0.05보다 작으므로 am값에 따라 mpg값에 통계적으로 유의한 차이가 있다
 t.test(mtcars[mtcars$am==0, 'mpg'], mtcars[mtcars$am==1, 'mpg'], var.equal = T)
+
+
+# 3) Anova(Analysis of Variance) test (3개 이상 그룹의 평균을 비교하는 분산분석)
+# 1~3 그룹별 점수 평균 차이가 있는지 확인하고 싶을 때
+anova_data<-data.frame(group=c(1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3),
+  score=c(50.5, 52.1, 51.9, 52.4, 50.6, 51.4, 51.2, 52.2, 51.5, 50.8,47.5, 47.7, 46.6, 47.1, 47.2, 47.8, 45.2, 47.4, 45.0, 47.9,46.0, 47.1, 45.6, 47.1, 47.2, 46.4, 45.9, 47.1, 44.9, 46.2))
+
+ggplot(anova_data, aes(x=factor(group), y=score, fill=factor(group))) + geom_boxplot()
+tapply(anova_data$score, anova_data$group, mean)  # 평균값
+tapply(anova_data$score, anova_data$group, max)   # 최대값
+
+# 등분산성 검정 : bartlett.test
+# t-test와는 달리 아래와 같이 표시하는 방법밖에 없음 (주의 : group 데이터 factor로 묶어줘야함)
+# p-value가 0.05보다 크므로 귀무가설 기각하지 않음 : 등분산 확인
+bartlett.test(score ~ as.factor(group), data=anova_data)
+
+# oneway.test : p-value가 0.05보다 작으므로 귀무가설 기각, 적어도 2개 이상의 그룹간 차이가 있다
+# oneway.test와 aov는 역할은 같으나 aov는 어떤 그룹끼리 차이가 있는지까지 보여주고, oneway.test는 가설 검정만 한다는 차이가 있다
+oneway.test(score~group,data=anova_data,var.equal = T)
+
+# 그룹간, 그룹내 분산분석 표를 보고싶으면 aov(사후검정에 특화)
+# summary에서 Pr(>F) p-value값도 확인 가능 (*** 붙어있으면 유의미)
+a1 <- aov(score~group, data=anova_data)
+summary(aov(score~group, data=anova_data))
+
+# 사후검정 : 방법은 몇십개가 있으나 차이가 크진 않고, 그룹간 차이가 없으면 굳이 안해도 됨
+library(laercio)
+
+# 방법1 : LDuncan
+LDuncan(a1, "group")
+
+# 방법2 : TukeyHSD
+# group에 해당하는 부분이 문자형 이어야함
+# 2그룹-1그룹, 3그룹-1그룹, 3그룹-2그룹 각각에 대한 summary 볼수있음
+TukeyHSD(aov(score ~ as.character(group), data=anova_data))
+plot(TukeyHSD(aov(score ~ as.character(group), data=anova_data)))
+
+# 등분산이 아닐경우
+anova_data2 <- data.frame(group=c(1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3),
+  score=c(70, 30, 20.3, 85.3, 50.6, 51.4, 51.2, 52.2, 51.5, 50.8,47.5, 47.7, 46.6, 47.1, 47.2, 47.8, 45.2, 47.4, 45.0, 47.9,46.0, 47.1, 45.6, 47.1, 47.2, 46.4, 45.9, 47.1, 44.9, 46.2))
+
+# 등분산성 검정 : bartlett.test
+# p-value가 0.05보다 작으므로 귀무가설 기각 : 등분산 아님
+bartlett.test(score~as.factor(group),data=anova_data2)
+
+# oneway.test : var.equal = F로 놓고 진행
+# p-value가 0.05보다 크므로 귀무가설 기각 : 적어도 2개 이상의 그룹간 차이가 있다
+oneway.test(score~group, data=anova_data2, var.equal = F)
+
+a2 <- aov(score~group, data = anova_data2)
+summary(aov(score~group, data = anova_data2))
+
+# 사후검정
+# 방법1 : LDuncan
+LDuncan(a2, "group")
+
+# 방법2 : TukeyHSD
+TukeyHSD(aov(score~as.character(group),data=anova_data2))
+plot(TukeyHSD(aov(score~as.character(group),data=anova_data2)))
