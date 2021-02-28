@@ -83,7 +83,7 @@ pairs.panels(mtcars[,1:7])
 chart.Correlation(mtcars[,1:7], histogram=TRUE, pch=19)
 
 
-### 2. t검정 (집단에 대한 평균 비교)
+### 2. t검정 (두 집단에 대한 평균 비교)
 # ex. 5시대 구매금액, 6시대 구매금액. 두 그룹간 구매액 평균 차이가 있는지 확인하고 싶을 때
 # 독립표본 t검정 : 서로 독립된 두 집단
 # 대응표본 t검정 : 같은 집단, 특정 조치하기 전과 후 비교
@@ -171,7 +171,7 @@ var.test(mtcars[mtcars$am==0, 'mpg'], mtcars[mtcars$am==1, 'mpg'])
 t.test(mtcars[mtcars$am==0, 'mpg'], mtcars[mtcars$am==1, 'mpg'], var.equal = T)
 
 
-# 3) Anova(Analysis of Variance) test (3개 이상 그룹의 평균을 비교하는 분산분석)
+### 3. Anova(Analysis of Variance) test (3개 이상 집단의 평균 비교)
 # 1~3 그룹별 점수 평균 차이가 있는지 확인하고 싶을 때
 anova_data<-data.frame(group=c(1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3),
   score=c(50.5, 52.1, 51.9, 52.4, 50.6, 51.4, 51.2, 52.2, 51.5, 50.8,47.5, 47.7, 46.6, 47.1, 47.2, 47.8, 45.2, 47.4, 45.0, 47.9,46.0, 47.1, 45.6, 47.1, 47.2, 46.4, 45.9, 47.1, 44.9, 46.2))
@@ -228,3 +228,67 @@ LDuncan(a2, "group")
 # 방법2 : TukeyHSD
 TukeyHSD(aov(score~as.character(group),data=anova_data2))
 plot(TukeyHSD(aov(score~as.character(group),data=anova_data2)))
+
+
+### 4. 카이제곱검정 (문자형 데이터에 대한 비교)
+# 성별과 비만은 연관이 있을까?
+data(acs)
+head(acs)
+
+table(acs$sex, acs$obesity)
+acs %>% 
+  count(sex, obesity) %>%
+  ggplot(aes(x=sex, y=n, fill=obesity)) +
+  geom_bar(stat="identity", position = "dodge")
+
+# chisq.test : correct = T는 데이터의 비연속성을 교정하고자 넣어주는 부분
+# p-value가 0.05보다 크므로 귀무가설 기각하지 않음 (= 두 분포는 독립이다)
+chisq.test(acs$sex, acs$obesity, correct = F)
+chisq.test(table(acs$sex, acs$obesity))
+
+# CrossTable로도 카이제곱검정값 확인 가능
+library(gmodels)
+CrossTable(acs$sex, acs$obesity,chisq=T, prop.t=F)
+CrossTable(table(acs$sex, acs$obesity))
+
+# 성별과 흡연여부는 연관이 있을까?
+table(acs$sex, acs$smoking)
+acs %>% 
+  dplyr::count(sex, smoking) %>%
+  ggplot(aes(x=sex, y=n, fill=smoking)) + 
+  geom_bar(stat="identity", position = "dodge")
+
+# p-value가 0.05보다 작으므로 귀무가설 채택 (= 두 분포는 독립이 아니다)
+chisq.test(acs$sex, acs$smoking, correct = F)
+chisq.test(table(acs$sex, acs$smoking), correct = F)
+
+# trend.test : 독립변수에 순위가 있을 때 독립변수 순위에 따른 종속변수 비율 증가, 감소 경향성 확인
+# 귀무가설 : 종속변수의 비율이 동일하다(일정)
+# 대립가설 :  종속변수의 비율이 동일하지 않다 (증가, 감소 추세가 있다)
+
+# 데이터 생성
+xtab <- matrix(c(384, 536, 335, 951, 869, 438), nrow=2)
+dimnames(xtab) <- list(
+  stone = c("yes", "no"),
+  age = c("30-39", "40-49", "50-59")
+)
+
+# p-value < 0.05이므로 귀무가설 기각
+# 종속변수 비율이 동일하지 않다 = age 비율이 동일하지 않다
+colSums(xtab)
+prop.trend.test(xtab[1,], colSums(xtab))
+
+# mosaicplot으로 시각화
+mosaicplot(t(xtab), col=c("deepskyblue", "brown2"))
+
+# exact.test : 기대도수가 5 이하인 cell이 25% 이상일 때 사용
+# 카이제곱 통계량이 불안정할 수 있어 fisher.test로 연관성 검정
+
+# 데이터 생성
+dat <- matrix(c(20,24,15,5), ncol=2)
+row.names(dat) <- c("흡연","비흡연")
+colnames(dat)<- c("정상","비정상")
+
+# p-value 
+colSums(dat)
+fisher.test(dat[2,], colSums(dat))
